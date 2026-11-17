@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== Kopfzeile ========== -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="currentColor"/>
+        <rect x="8" y="16" width="4" height="8" rx="1.5"/>
+        <rect x="14" y="10" width="4" height="14" rx="1.5"/>
+        <rect x="20" y="13" width="4" height="11" rx="1.5"/>
+      </svg>
+      <span>Finance Tracker</span>
+    </div>
+
+    <!-- Monatsauswahl: mit den Pfeilen durch die Monate blättern -->
+    <div class="month-nav" role="group" aria-label="Monat wählen">
+      <button id="prev-month" class="icon-btn" type="button" aria-label="Vorheriger Monat">‹</button>
+      <span id="month-label" aria-live="polite"></span>
+      <button id="next-month" class="icon-btn" type="button" aria-label="Nächster Monat">›</button>
+    </div>
+
+    <div class="actions">
+      <button id="theme-btn" class="btn ghost" type="button">Dunkel</button>
+      <button id="add-btn" class="btn primary" type="button">+ Neue Transaktion</button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- ========== Übersicht: Kontostand + Kennzahlen ========== -->
+    <section class="overview">
+
+      <div class="hero">
+        <p class="hero-label">Kontostand gesamt</p>
+        <p class="hero-amount" id="balance">0,00 €</p>
+        <p class="hero-sub" id="month-net"></p>
+
+        <div class="budget">
+          <div class="budget-head">
+            <label for="budget-input">Ausgabenlimit pro Monat</label>
+            <span class="budget-field">
+              <input type="number" id="budget-input" min="0" step="10"> €
+            </span>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="progress-fill"></div></div>
+          <p class="budget-text" id="budget-text"></p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Einnahmen</span>
+          <strong class="stat-value income" id="income">0,00 €</strong>
+          <span class="stat-note" id="income-change"></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Ausgaben</span>
+          <strong class="stat-value expense" id="expense">0,00 €</strong>
+          <span class="stat-note" id="expense-change"></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Sparquote</span>
+          <strong class="stat-value" id="savings">–</strong>
+          <span class="stat-note">Anteil der Einnahmen, der übrig bleibt</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========== Diagramm ========== -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="chart-title">Jahresübersicht</h2>
+        <div class="legend">
+          <span id="chart-scale" class="muted"></span>
+          <span><i class="dot income-bg"></i>Einnahmen</span>
+          <span><i class="dot expense-bg"></i>Ausgaben</span>
+        </div>
+      </div>
+      <div id="chart" class="chart"></div>
+    </section>
+
+    <!-- ========== Cashflow: Einnahmen minus Ausgaben pro Monat ========== -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="cashflow-title">Cashflow</h2>
+        <div class="legend">
+          <span><i class="dot income-bg"></i>Überschuss</span>
+          <span><i class="dot expense-bg"></i>Defizit</span>
+        </div>
+      </div>
+
+      <div class="cf-summary">
+        <div class="stat">
+          <span class="stat-label" id="cf-month-label">Monat</span>
+          <strong class="stat-value" id="cf-month">–</strong>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Ø pro Monat</span>
+          <strong class="stat-value" id="cf-average">–</strong>
+          <span class="stat-note">nur Monate mit Einträgen</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Gesamt im Jahr</span>
+          <strong class="stat-value" id="cf-year">–</strong>
+        </div>
+      </div>
+
+      <div id="cashflow-chart" class="chart"></div>
+      <p class="muted cf-note">Cashflow = Einnahmen − Ausgaben. Balken über der Linie: mehr eingenommen als ausgegeben.</p>
+    </section>
+
+    <!-- ========== Kategorien + Transaktionen ========== -->
+    <section class="lower">
+
+      <div class="panel">
+        <h2>Ausgaben nach Kategorie</h2>
+        <div id="category-bar" class="stack"></div>
+        <ul id="category-list" class="cat-list"></ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Transaktionen</h2>
+          <span id="count" class="muted"></span>
+        </div>
+
+        <div class="filters">
+          <input type="search" id="search" placeholder="Suchen …" aria-label="Transaktionen durchsuchen">
+          <select id="filter-category" aria-label="Nach Kategorie filtern"></select>
+          <select id="filter-type" aria-label="Nach Typ filtern">
+            <option value="">Alle Typen</option>
+            <option value="income">Einnahmen</option>
+            <option value="expense">Ausgaben</option>
+          </select>
+        </div>
+
+        <ul id="list" class="tx-list"></ul>
+        <p id="empty" class="empty" hidden></p>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Alle Daten bleiben lokal in deinem Browser.</p>
+    <div>
+      <button id="demo-btn" class="link-btn" type="button">Demo-Daten laden</button>
+      <button id="reset-btn" class="link-btn danger" type="button">Alles zurücksetzen</button>
+    </div>
+  </footer>
+
+  <!-- ========== Fenster zum Hinzufügen und Bearbeiten ========== -->
+  <dialog id="dialog">
+    <form id="form">
+      <h2 id="dialog-title">Neue Transaktion</h2>
+
+      <div class="segmented">
+        <input type="radio" name="type" id="type-expense" value="expense" checked>
+        <label for="type-expense">Ausgabe</label>
+        <input type="radio" name="type" id="type-income" value="income">
+        <label for="type-income">Einnahme</label>
+      </div>
+
+      <label class="field">
+        <span>Beschreibung</span>
+        <input type="text" id="f-description" maxlength="60" placeholder="z.B. Wocheneinkauf" required>
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Betrag in €</span>
+          <input type="number" id="f-amount" step="0.01" min="0.01" placeholder="0,00" required>
+        </label>
+        <label class="field">
+          <span>Datum</span>
+          <input type="date" id="f-date" required>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Kategorie</span>
+        <select id="f-category"></select>
+      </label>
+
+      <div class="dialog-actions">
+        <button type="button" id="cancel-btn" class="btn ghost">Abbrechen</button>
+        <button type="submit" class="btn primary">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
